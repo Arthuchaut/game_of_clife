@@ -57,6 +57,12 @@ class GameOfLife:
         self._area: List[List[Cell]] = self._init_area(area)
         self._historic: Historic = None
 
+        self._ref_frame_rate: float = time.time()
+        self._ref_duration: float = time.time()
+        self._generation: int = 0
+        self._frames: int = 0
+        self._cached_frames: int = self._frames
+
     def _init_area(self, area: List[List[Cell]]) -> List[List[Cell]]:
         if area is None:
             return [
@@ -78,23 +84,13 @@ class GameOfLife:
 
         self._clear_area()
         self._draw_area()
-        frames: int = 0
-        frames_freeze: int = frames
-        t1: float = time.time()
 
         while True:
             time.sleep(self._SLEEP_TIME)
             self._update_area()
             self._clear_area()
             self._draw_area()
-            print('FRAMES:', frames_freeze, '/s')
-
-            frames += 1
-
-            if time.time() - t1 >= 1:
-                frames_freeze = frames
-                frames = 0
-                t1 = time.time()
+            self._print_infos()
 
     def _draw_area(self) -> None:
         for row in self._area:
@@ -143,6 +139,29 @@ class GameOfLife:
 
     def trace_historic(self, folder: Path) -> None:
         self._historic = Historic(folder)
+
+    def _print_infos(self) -> None:
+        print('---------- INFO ----------')
+        self._print_frame_rate()
+        self._print_generations()
+        self._print_duration()
+        print('--------------------------')
+
+    def _print_frame_rate(self) -> None:
+        print(f'FRAME RATE: {self._cached_frames} f/s')
+        self._frames += 1
+
+        if time.time() - self._ref_frame_rate >= 1:
+            self._cached_frames = self._frames
+            self._frames = 0
+            self._ref_frame_rate = time.time()
+
+    def _print_generations(self) -> None:
+        print(f'GENERATIONS: {self._generation} iters')
+        self._generation += 1
+
+    def _print_duration(self) -> None:
+        print(f'DURATION: {round(time.time() - self._ref_duration, 2)} s')
 
     @property
     def term_rows(self) -> int:
