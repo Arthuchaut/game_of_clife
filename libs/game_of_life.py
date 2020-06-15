@@ -45,16 +45,8 @@ class Cell:
 class GameOfLife:
     _SLEEP_TIME: float = 0.01
 
-    def __init__(
-        self,
-        *,
-        term_rows: int = None,
-        term_cols: int = None,
-        area: List[List[Cell]] = None,
-    ):
-        self._term_rows: int = term_rows
-        self._term_cols: int = term_cols
-        self._area: List[List[Cell]] = self._init_area(area)
+    def __init__(self, area: List[List[Cell]]):
+        self._area: List[List[Cell]] = area
         self._historic: Historic = None
 
         self._ref_frame_rate: float = time.time()
@@ -62,21 +54,6 @@ class GameOfLife:
         self._generation: int = 0
         self._frames: int = 0
         self._cached_frames: int = self._frames
-
-    def _init_area(self, area: List[List[Cell]]) -> List[List[Cell]]:
-        if area is None:
-            return [
-                [Cell(i=i, j=j) for j in range(self.term_cols)]
-                for i in range(self.term_rows)
-            ]
-
-        return [
-            [
-                Cell(i=i, j=j, status=area[i][j].status)
-                for j in range(len(area[i]))
-            ]
-            for i in range(len(area))
-        ]
 
     def start(self) -> None:
         if self._historic:
@@ -121,18 +98,6 @@ class GameOfLife:
         elif ngb_alives < 2 or ngb_alives > 3:
             if cell.is_alive():
                 return cell, Status.DEAD
-
-    # def _neighbors(self, cell: Cell) -> List[Cell]:
-    #     return [
-    #         self._area[i][j]
-    #         for j in range(cell.j - 1, cell.j + 2)
-    #         for i in range(cell.i - 1, cell.i + 2)
-    #         if (j != cell.j or i != cell.i)
-    #         and j > -1
-    #         and j < len(self._area[cell.i])
-    #         and i > -1
-    #         and i < len(self._area)
-    #     ]
 
     def _neighbors(self, cell: Cell) -> List[Cell]:
         ngbs: List[Cell] = []
@@ -188,19 +153,34 @@ class GameOfLife:
     def _print_duration(self) -> None:
         print(f'DURATION: {round(time.time() - self._ref_duration, 2)} s')
 
-    @property
-    def term_rows(self) -> int:
-        if self._term_rows is None:
-            return os.get_terminal_size().lines
+    @staticmethod
+    def from_str(area: str) -> List[List[Cell]]:
+        return GameOfLife.from_matrix(
+            [
+                [
+                    Cell(status=Status.ALIVE if char == 'x' else Status.DEAD)
+                    for char in line
+                ]
+                for line in area.split('\n')[1:-1]
+            ]
+        )
 
-        return self._term_rows
+    @staticmethod
+    def from_matrix(area: List[List[Cell]]) -> List[List[Cell]]:
+        return [
+            [
+                Cell(i=i, j=j, status=area[i][j].status)
+                for j in range(len(area[i]))
+            ]
+            for i in range(len(area))
+        ]
 
-    @property
-    def term_cols(self) -> int:
-        if self._term_cols is None:
-            return os.get_terminal_size().columns
-
-        return self._term_cols
+    @staticmethod
+    def from_dim(*, term_rows: int, term_cols: int) -> List[List[Cell]]:
+        return [
+            [Cell(i=i, j=j) for j in range(term_cols)]
+            for i in range(term_rows)
+        ]
 
 
 class Historic:
