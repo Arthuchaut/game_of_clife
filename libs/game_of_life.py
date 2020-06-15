@@ -1,7 +1,6 @@
-from typing import List
+from typing import List, Tuple
 from random import randint
 from enum import Enum
-from copy import deepcopy
 from pathlib import Path
 from uuid import uuid4
 import os
@@ -104,22 +103,28 @@ class GameOfLife:
             print()
 
     def _update_area(self) -> None:
-        tmp_area: List[List[Cell]] = deepcopy(self._area)
+        updated_cells: List[Cell] = []
 
-        for i in range(len(tmp_area)):
-            for j in range(len(tmp_area[i])):
-                self._update_cell(tmp_area[i][j])
+        for i in range(len(self._area)):
+            for j in range(len(self._area[i])):
+                new_cell: Cell = self._update_cell(self._area[i][j])
+                if new_cell:
+                    updated_cells += [new_cell]
 
-        self._area = tmp_area
+        for cell, status in updated_cells:
+            cell.status = status
+            self._area[cell.i][cell.j] = cell
 
-    def _update_cell(self, cell: Cell) -> None:
+    def _update_cell(self, cell: Cell) -> Tuple[Cell, Status]:
         neighbors: List[Cell] = self._neighbors(cell)
         ngb_alives: int = len([c for c in neighbors if c.is_alive()])
 
         if ngb_alives == 3:
-            cell.born()
+            if not cell.is_alive():
+                return cell, Status.ALIVE
         elif ngb_alives < 2 or ngb_alives > 3:
-            cell.dies()
+            if cell.is_alive():
+                return cell, Status.DEAD
 
     def _neighbors(self, cell: Cell) -> List[Cell]:
         return [
