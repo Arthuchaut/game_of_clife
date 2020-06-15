@@ -65,26 +65,24 @@ class GameOfLife:
         self._cached_frames: int = self._frames
 
     def start(self) -> None:
-        if self._historic:
-            self._historic.trace(self._historic.area_to_str(self._area))
+        try:
+            if self._historic:
+                self._historic.trace(self._historic.area_to_str(self._area))
 
-        self._clear_area()
-        self._draw_area()
-
-        while True:
-            try:
+            while True:
                 time.sleep(self._SLEEP_TIME)
                 self._update_area()
                 self._clear_area()
                 self._draw_area()
                 self._print_infos()
-            except KeyboardInterrupt:
-                if self._historic:
-                    self._historic.trace(
-                        self._historic.area_to_str(self._area)
-                    )
+        except KeyboardInterrupt:
+            if self._historic:
+                self._historic.trace(self._historic.area_to_str(self._area))
 
-                sys.exit()
+            self._clear_area()
+            self._draw_area()
+            self._print_infos()
+            sys.exit()
 
     def _draw_area(self) -> None:
         for row in self._area:
