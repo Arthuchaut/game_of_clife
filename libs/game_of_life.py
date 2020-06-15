@@ -122,17 +122,42 @@ class GameOfLife:
             if cell.is_alive():
                 return cell, Status.DEAD
 
+    # def _neighbors(self, cell: Cell) -> List[Cell]:
+    #     return [
+    #         self._area[i][j]
+    #         for j in range(cell.j - 1, cell.j + 2)
+    #         for i in range(cell.i - 1, cell.i + 2)
+    #         if (j != cell.j or i != cell.i)
+    #         and j > -1
+    #         and j < len(self._area[cell.i])
+    #         and i > -1
+    #         and i < len(self._area)
+    #     ]
+
     def _neighbors(self, cell: Cell) -> List[Cell]:
-        return [
-            self._area[i][j]
-            for j in range(cell.j - 1, cell.j + 2)
-            for i in range(cell.i - 1, cell.i + 2)
-            if (j != cell.j or i != cell.i)
-            and j > -1
-            and j < len(self._area[cell.i])
-            and i > -1
-            and i < len(self._area)
-        ]
+        ngbs: List[Cell] = []
+
+        for i in range(cell.i - 1, cell.i + 2):
+            for j in range(cell.j - 1, cell.j + 2):
+                if j != cell.j or i != cell.i:
+                    i = (
+                        0
+                        if i >= len(self._area)
+                        else len(self._area) - 1
+                        if i == -1
+                        else i
+                    )
+                    j = (
+                        0
+                        if j >= len(self._area[cell.i])
+                        else len(self._area[cell.i]) - 1
+                        if j == -1
+                        else j
+                    )
+
+                    ngbs += [self._area[i][j]]
+
+        return ngbs
 
     def _clear_area(self) -> None:
         os.system('clear')
